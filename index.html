@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能图片背景去除工具</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-magic"></i> 智能背景去除器</h1>
+            <p class="subtitle">快速、简单地去除图片背景，支持 PNG、JPG、JPEG 格式</p>
+        </header>
+
+        <main>
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>拖拽图片到这里</h3>
+                <p>或点击选择文件 (支持 PNG, JPG, JPEG)</p>
+                <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.jfif,.webp">
+                <div class="file-info" id="fileInfo"></div>
+            </div>
+
+            <div class="processing-controls">
+                <button id="processBtn" class="btn btn-primary" disabled>
+                    <i class="fas fa-wand-magic-sparkles"></i> 去除背景
+                </button>
+                <button id="resetBtn" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+
+            <div class="comparison-section">
+                <div class="image-container">
+                    <h3><i class="fas fa-image"></i> 原图</h3>
+                    <div class="image-wrapper">
+                        <img id="originalImage" src="images/placeholder.png" alt="原图预览">
+                        <div class="image-placeholder" id="originalPlaceholder">
+                            <i class="fas fa-image"></i>
+                            <p>上传图片后显示</p>
+                        </div>
+                    </div>
+                    <div class="image-info" id="originalInfo"></div>
+                </div>
+
+                <div class="image-container">
+                    <h3><i class="fas fa-check-circle"></i> 结果图</h3>
+                    <div class="image-wrapper">
+                        <img id="resultImage" src="images/placeholder.png" alt="结果预览">
+                        <div class="image-placeholder" id="resultPlaceholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>处理后显示</p>
+                        </div>
+                    </div>
+                    <div class="image-info" id="resultInfo"></div>
+                </div>
+            </div>
+
+            <div class="download-section">
+                <button id="downloadBtn" class="btn btn-success" disabled>
+                    <i class="fas fa-download"></i> 下载结果图 (PNG)
+                </button>
+                <div class="format-options">
+                    <label>
+                        <input type="radio" name="format" value="png" checked> PNG
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="jpg"> JPG
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="webp"> WebP
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-bolt"></i>
+                    <h4>快速处理</h4>
+                    <p>使用先进的算法，几秒钟内完成背景去除</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <h4>隐私保护</h4>
+                    <p>图片处理完全在浏览器中进行，不上传服务器</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-tag"></i>
+                    <h4>完全免费</h4>
+                    <p>无任何限制，无需注册，完全免费使用</p>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h4>响应式设计</h4>
+                    <p>完美支持手机、平板和电脑等所有设备</p>
+                </div>
+            </div>
+            <p class="copyright">© 2024 智能背景去除工具 | 基于 OpenClaw 构建</p>
+        </footer>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>正在处理图片...</h3>
+            <p id="loadingMessage">请稍候，这可能需要几秒钟</p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <!-- 引入 rembg.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.2.2/dist/index.umd.js"></script>
+</body>
+</html>
