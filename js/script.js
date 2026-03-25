@@ -22,8 +22,20 @@ let originalFile = null;
 let processedBlob = null;
 let isProcessing = false;
 
+// 用户认证状态
+let currentUser = null;
+const AUTH_KEY = 'bg_remover_user';
+
 // remove.bg API 密钥
 const REMOVE_BG_API_KEY = 'QvqZp7MVBPi9AQ3wc51rnEba';
+
+// Google OAuth 配置
+const GOOGLE_CLIENT_ID = '248150719010-cfcv17vgabb3efj3m2pq9r723j4j9ect.apps.googleusercontent.com';
+const REDIRECT_URI = 'https://bg-remover-9sv.pages.dev';
+
+// PayPal 配置
+const PAYPAL_CLIENT_ID = 'ATRfWZ_3wVGCBCpByqcXP1AIvN0amBbX0vgR8_2m0_jOyQ4y_q5ToL-xhjeTRiisBLtd84YHROvIRDeS';
+const PAYPAL_SANDBOX = true;
 
 // 显示加载状态
 function showLoading(message = '正在处理图片...') {
@@ -89,6 +101,201 @@ function showSuccess(message) {
         document.head.appendChild(style);
     }
 }
+
+// ============================================
+// 用户认证模块
+// ============================================
+
+// 初始化认证状态
+function initAuth() {
+    const savedUser = localStorage.getItem(AUTH_KEY);
+    if (savedUser) {
+        try {
+            currentUser = JSON.parse(savedUser);
+            updateAuthUI();
+            console.log('已恢复登录状态:', currentUser.email);
+        } catch (e) {
+            localStorage.removeItem(AUTH_KEY);
+        }
+    }
+}
+
+// 检查哈希中的 access_token (OAuth 回调)
+function handleAuthCallback() {
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        
+        if (accessToken) {
+            showLoading('正在验证登录...');
+            
+            // 获取用户信息
+            fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
+                .then(res => res.json())
+                .then(userInfo => {
+                    currentUser = {
+                        id: userInfo.sub,
+                        name: userInfo.name,
+                        email: userInfo.email,
+                        picture: userInfo.picture,
+                        accessToken: accessToken,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem(AUTH_KEY, JSON.stringify(currentUser));
+                    updateAuthUI();
+                    hideLoading();
+                    showSuccess(`欢迎回来，${userInfo.name}！`);
+                    
+                    // 清除 URL hash
+                    window.history.replaceState(null, '', window.location.pathname);
+                })
+                .catch(err => {
+                    console.error('获取用户信息失败:', err);
+                    hideLoading();
+                    showError('登录验证失败，请重试');
+                });
+        }
+    }
+}
+
+// Google 登录
+function googleLogin() {
+    const scope = 'openid email profile';
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
+        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+        `&response_type=token` +
+        `&scope=${encodeURIComponent(scope)}` +
+        `&prompt=select_account`;
+    
+    window.location.href = authUrl;
+}
+
+// 退出登录
+function logout() {
+    currentUser = null;
+    localStorage.removeItem(AUTH_KEY);
+    updateAuthUI();
+    showSuccess('已退出登录');
+}
+
+// 更新认证 UI
+function updateAuthUI() {
+    const loginBtn = document.getElementById('loginBtn');
+    const userInfo = document.getElementById('userInfo');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginOverlay = document.getElementById('loginOverlay');
+    const mainContent = document.querySelector('main');
+    
+    if (currentUser) {
+        // 已登录状态
+        loginBtn.style.display = 'none';
+        userInfo.style.display = 'flex';
+        userAvatar.src = currentUser.picture;
+        userName.textContent = currentUser.name;
+        loginOverlay.classList.remove('active');
+        mainContent.classList.remove('content-locked');
+    } else {
+        // 未登录状态
+        loginBtn.style.display = 'flex';
+        userInfo.style.display = 'none';
+        mainContent.classList.add('content-locked');
+    }
+}
+
+// ============================================
+// PayPal 支付模块
+// ============================================
+
+// 打开支付弹窗
+function openPricingModal() {
+    const pricingOverlay = document.getElementById('pricingOverlay');
+    if (pricingOverlay) {
+        pricingOverlay.classList.add('active');
+    }
+}
+
+// 关闭支付弹窗
+function closePricingModal() {
+    const pricingOverlay = document.getElementById('pricingOverlay');
+    if (pricingOverlay) {
+        pricingOverlay.classList.remove('active');
+    }
+}
+
+// 初始化 PayPal 按钮
+function initPayPalButtons() {
+    if (typeof paypal === 'undefined') {
+        console.log('PayPal SDK not loaded yet');
+        return;
+    }
+    
+    // 月度会员按钮
+    try {
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '4.99'
+                        },
+                        description: '月度会员'
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    showSuccess(`支付成功！欢迎 ${details.payer.name.given_name}`);
+                    closePricingModal();
+                    // TODO: 更新用户会员状态
+                });
+            },
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                showError('支付失败，请重试');
+            }
+        }).render('#paypal-button-container-monthly');
+    } catch (e) {
+        console.error('Monthly button error:', e);
+    }
+    
+    // 年度会员按钮
+    try {
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '29.99'
+                        },
+                        description: '年度会员'
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    showSuccess(`支付成功！欢迎 ${details.payer.name.given_name}`);
+                    closePricingModal();
+                    // TODO: 更新用户会员状态
+                });
+            },
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                showError('支付失败，请重试');
+            }
+        }).render('#paypal-button-container-yearly');
+    } catch (e) {
+        console.error('Yearly button error:', e);
+    }
+}
+
+// ============================================
+// 原有功能模块
+// ============================================
 
 // 更新处理按钮状态
 function updateProcessButton() {
@@ -499,6 +706,29 @@ formatOptions.forEach(option => {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Background Remover Tool initialized');
     console.log('removeBackground available:', typeof removeBackground === 'function');
+    
+    // 初始化认证
+    initAuth();
+    handleAuthCallback();
+    
+    // 登录按钮事件
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+    const closePricingBtn = document.getElementById('closePricing');
+    const pricingOverlay = document.getElementById('pricingOverlay');
+    
+    if (loginBtn) loginBtn.addEventListener('click', googleLogin);
+    if (googleLoginBtn) googleLoginBtn.addEventListener('click', googleLogin);
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    if (closePricingBtn) closePricingBtn.addEventListener('click', closePricingModal);
+    if (pricingOverlay) pricingOverlay.addEventListener('click', (e) => {
+        if (e.target === pricingOverlay) closePricingModal();
+    });
+    
+    // 初始化 PayPal 按钮（延迟等待 SDK 加载）
+    setTimeout(initPayPalButtons, 1000);
+    
     updateProcessButton();
     updateDownloadButton();
 });

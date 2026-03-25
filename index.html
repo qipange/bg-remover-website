@@ -11,6 +11,18 @@
 <body>
     <div class="container">
         <header>
+            <div class="header-top">
+                <div class="user-section" id="userSection">
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <img id="userAvatar" src="" alt="用户头像" class="user-avatar">
+                        <span id="userName"></span>
+                        <button id="logoutBtn" class="btn btn-small">退出</button>
+                    </div>
+                    <button id="loginBtn" class="btn btn-google">
+                        <i class="fab fa-google"></i> Google 登录
+                    </button>
+                </div>
+            </div>
             <h1><i class="fas fa-magic"></i> 智能背景去除器</h1>
             <p class="subtitle">快速、简单地去除图片背景，支持 PNG、JPG、JPEG 格式</p>
         </header>
@@ -104,6 +116,58 @@
         </footer>
     </div>
 
+    <!-- 会员购买弹窗 -->
+    <div class="pricing-overlay" id="pricingOverlay">
+        <div class="pricing-modal">
+            <button class="close-btn" id="closePricing">&times;</button>
+            <h3><i class="fas fa-crown"></i> 升级会员</h3>
+            <p style="color: #666; margin-bottom: 25px;">解锁更多功能和更高处理额度</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h4>月度会员</h4>
+                    <div class="price">$4.99<span>/月</span></div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> 无限图片处理</li>
+                        <li><i class="fas fa-check"></i> 高清输出</li>
+                        <li><i class="fas fa-check"></i> 批量处理</li>
+                        <li><i class="fas fa-check"></i> 优先客服</li>
+                    </ul>
+                    <div id="paypal-button-container-monthly"></div>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="badge">推荐</div>
+                    <h4>年度会员</h4>
+                    <div class="price">$29.99<span>/年</span></div>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> 无限图片处理</li>
+                        <li><i class="fas fa-check"></i> 高清输出</li>
+                        <li><i class="fas fa-check"></i> 批量处理</li>
+                        <li><i class="fas fa-check"></i> 优先客服</li>
+                        <li><i class="fas fa-check"></i> 节省 50%</li>
+                    </ul>
+                    <div id="paypal-button-container-yearly"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录弹窗 -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-modal">
+            <i class="fas fa-user-circle" style="font-size: 4rem; color: #3498db; margin-bottom: 20px;"></i>
+            <h3>登录以使用完整功能</h3>
+            <p>登录后，您可以保存处理历史、享受会员专属功能等</p>
+            <button id="googleLoginBtn" class="btn btn-google">
+                <i class="fab fa-google"></i> Google 账号登录
+            </button>
+            <p style="font-size: 0.85rem; color: #999; margin-top: 15px;">
+                登录即表示您同意我们的服务条款和隐私政策
+            </p>
+        </div>
+    </div>
+
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-content">
             <div class="spinner"></div>
@@ -115,5 +179,7 @@
     <script src="js/script.js"></script>
     <!-- 引入 rembg.js 库 -->
     <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.2.2/dist/index.umd.js"></script>
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=ATRfWZ_3wVGCBCpByqcXP1AIvN0amBbX0vgR8_2m0_jOyQ4y_q5ToL-xhjeTRiisBLtd84YHROvIRDeS&currency=USD"></script>
 </body>
 </html>
