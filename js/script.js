@@ -717,9 +717,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const googleLoginBtn = document.getElementById('googleLoginBtn');
     const closePricingBtn = document.getElementById('closePricing');
     const pricingOverlay = document.getElementById('pricingOverlay');
+    const upgradeBtn = document.getElementById('upgradeBtn');
     
     if (loginBtn) loginBtn.addEventListener('click', googleLogin);
     if (googleLoginBtn) googleLoginBtn.addEventListener('click', googleLogin);
+    if (upgradeBtn) upgradeBtn.addEventListener('click', openPricingModal);
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
     if (closePricingBtn) closePricingBtn.addEventListener('click', closePricingModal);
     if (pricingOverlay) pricingOverlay.addEventListener('click', (e) => {
